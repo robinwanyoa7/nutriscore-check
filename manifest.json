@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
   "name": "NutriScore Tool",
-  "version": "1.0",
+  "version": "0.1",
   "description": "Real-time nutritional tracking analysis for grocery websites",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://*.naivas.online/*",
+    "*://*.naivas.co.ke/*",
+    "file:///*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "NutriScore"
@@ -11,15 +16,20 @@
   "content_scripts": [
     {
       "matches": [
-        "https://*.naivas.online/*",
+        "*://*.naivas.online/*",
+        "*://*.naivas.co.ke/*",
         "file:///*"
       ],
       "js": [
         "scraper.js",
         "iconLayer.js",
+        "nutrientBar.js",
+        "overlayLayer.js",
+        "tooltip.js",
+        "activatePrompt.js",
         "content.js"
       ],
-      "run_at": "document_end"
+      "run_at": "document_idle"
     }
   ]
 }

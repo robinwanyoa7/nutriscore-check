@@ -7,15 +7,17 @@
    * IconLayer - Creates a grade badge on a product container
    * @param {HTMLElement} container - The product container element
    * @param {string} productName - Name of the product
-   * @param {Function} onClick - Callback when icon is clicked (receives productName, iconElement)
+   * @param {Function} onClick - Callback when icon is clicked (receives productName, grade, iconElement)
    */
   class IconLayer {
-    constructor(container, productName, onClick) {
+    constructor(container, product, onClick) {
       this.container = container;
-      this.productName = productName;
+      this.product = product || {};
+      this.productName = this.product.name || 'Product';
+      this.productPrice = this.product.price || '';
       this.onClick = onClick;
       this.iconElement = null;
-      this.grade = this.calculateGrade(productName);
+      this.grade = this.calculateGrade(this.productName);
       this.nutrientData = null;
       
       // Create and inject the icon
@@ -86,7 +88,7 @@
       this.iconElement.dataset.grade = this.grade;
       this.iconElement.dataset.product = this.productName;
 
-      // Style the icon
+      // Style the icon bar
       this.iconElement.style.cssText = `
         position: absolute;
         top: 8px;
@@ -96,32 +98,59 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
+        min-width: 110px;
         height: 36px;
-        border-radius: 50%;
-        background: ${this.getGradeColor(this.grade)};
+        border-radius: 999px;
+        background: #16a34a;
         color: white;
         font-weight: 700;
-        font-size: 16px;
+        font-size: 14px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border: 2px solid white;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        border: 2px solid rgba(255,255,255,0.15);
+        padding: 0 14px;
         user-select: none;
       `;
 
-      // Add letter
       const letterSpan = document.createElement('span');
-      letterSpan.textContent = this.grade;
+      letterSpan.textContent = 'Nutriscore';
       letterSpan.style.cssText = `
         position: relative;
         z-index: 1;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
       `;
       this.iconElement.appendChild(letterSpan);
 
+      const hoverCard = document.createElement('div');
+      hoverCard.className = 'nutriscore-icon-hovercard';
+      hoverCard.textContent = `${this.productName}${this.productPrice ? ' · ' + this.productPrice : ''}`;
+      hoverCard.style.cssText = `
+        position: absolute;
+        top: -44px;
+        right: 50%;
+        transform: translateX(50%);
+        min-width: 180px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.95);
+        color: white;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        z-index: 10000;
+        white-space: normal;
+        text-align: center;
+      `;
+
+      this.iconElement.appendChild(hoverCard);
+      this.iconElement.dataset.hoverCard = 'true';
+
       // Add tooltip on hover
-      this.iconElement.title = `${this.productName}\nGrade: ${this.grade}\nClick for details`;
+      this.iconElement.title = `${this.productName}\n${this.productPrice ? 'Price: ' + this.productPrice + '\n' : ''}Grade: ${this.grade}\nClick for details`;
 
       // Make container relative for positioning
       this.ensureContainerPosition();
@@ -131,19 +160,27 @@
         e.stopPropagation();
         e.preventDefault();
         if (this.onClick) {
-          this.onClick(this.productName, this.iconElement);
+          this.onClick(this.product, this.grade, this.iconElement);
         }
       });
 
       // Add hover effects
       this.iconElement.addEventListener('mouseenter', () => {
-        this.iconElement.style.transform = 'scale(1.15)';
-        this.iconElement.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.35)';
+        this.iconElement.style.transform = 'scale(1.05)';
+        this.iconElement.style.boxShadow = '0 6px 22px rgba(0, 0, 0, 0.32)';
+        this.setHoverCardVisible(true);
+        if (typeof window.showNutriScoreTooltip === 'function') {
+          window.showNutriScoreTooltip(this.iconElement, `${this.productName}${this.productPrice ? ' · ' + this.productPrice : ''}\nGrade: ${this.grade}`);
+        }
       });
 
       this.iconElement.addEventListener('mouseleave', () => {
         this.iconElement.style.transform = 'scale(1)';
-        this.iconElement.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.25)';
+        this.iconElement.style.boxShadow = '0 4px 18px rgba(0, 0, 0, 0.24)';
+        this.setHoverCardVisible(false);
+        if (typeof window.hideNutriScoreTooltip === 'function') {
+          window.hideNutriScoreTooltip();
+        }
       });
 
       // Inject into the container
@@ -186,6 +223,13 @@
       void this.iconElement.offsetWidth;
       
       this.iconElement.style.transform = 'scale(1)';
+    }
+
+    setHoverCardVisible(isVisible) {
+      const hoverCard = this.iconElement.querySelector('.nutriscore-icon-hovercard');
+      if (!hoverCard) return;
+      hoverCard.style.opacity = isVisible ? '1' : '0';
+      hoverCard.style.transform = isVisible ? 'translateX(50%) translateY(-4px)' : 'translateX(50%) translateY(0)';
     }
 
     /**
