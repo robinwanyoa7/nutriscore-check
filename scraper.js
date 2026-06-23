@@ -34,6 +34,7 @@
     if (candidates.length) {
       for (const element of candidates) {
         if (isNavigationElement(element)) continue;
+        if (isInsideNavigationMenu(element)) continue;
 
         const name = extractProductName(element);
         if (!name) continue;
@@ -50,6 +51,7 @@
       const headings = document.querySelectorAll('h2, h3, .product-title, .item-title, .title');
       for (const heading of headings) {
         if (isNavigationElement(heading)) continue;
+        if (isInsideNavigationMenu(heading)) continue;
 
         const name = heading.textContent.trim();
         if (name && name.length > 2 && name.length < 100) {
@@ -57,7 +59,7 @@
           if (!container) {
             container = heading.parentElement;
           }
-          if (container && !isNavigationElement(container) && isLikelyProductCard(container)) {
+          if (container && !isNavigationElement(container) && !isInsideNavigationMenu(container) && isLikelyProductCard(container)) {
             const price = extractProductPrice(container);
             products.push({ element: container, name, price, key: container.dataset.productId || container.dataset.sku || container.id || name });
           }
@@ -207,6 +209,31 @@
     for (const selector of actionSelectors) {
       const actionEl = element.querySelector(selector);
       if (actionEl && actionEl.textContent.trim().length > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function isInsideNavigationMenu(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return false;
+
+    const navSelectors = [
+      'nav',
+      '.nav',
+      '.navbar',
+      '.navigation',
+      '.menu',
+      '.dropdown-menu',
+      '.site-header',
+      '.top-bar',
+      '.header',
+      '.header-menu'
+    ];
+
+    for (const selector of navSelectors) {
+      if (element.closest(selector)) {
         return true;
       }
     }
