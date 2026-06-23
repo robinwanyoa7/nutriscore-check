@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "NutriScore Tool",
+  "version": "1.0",
+  "description": "Real-time nutritional tracking analysis for grocery websites",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "NutriScore"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.naivas.online/*",
+        "file:///*"
+      ],
+      "js": [
+        "scraper.js",
+        "iconLayer.js",
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

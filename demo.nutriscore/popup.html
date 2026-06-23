@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriScore</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="header">
+      <h1>🥗 NutriScore</h1>
+    </div>
+    
+    <div class="content">
+      <div class="status-section">
+        <div class="status-indicator" id="statusIndicator">
+          <span class="dot" id="statusDot"></span>
+          <span id="statusText">NutriScore is ready</span>
+        </div>
+      </div>
+
+      <div class="action-section">
+        <button id="toggleButton" class="btn-primary">Activate</button>
+        <button id="dismissButton" class="btn-secondary">Dismiss</button>
+      </div>
+
+      <div class="info-text">
+        <p>Click "Activate" to analyze products on this page.</p>
+        <p>NutriScore will show nutritional grades instantly.</p>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
