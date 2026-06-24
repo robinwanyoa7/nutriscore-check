@@ -9,7 +9,10 @@ const mountOverlay = null;
 const scrapeProducts = () => (window.scrapeProducts ? window.scrapeProducts() : []);
 const showTooltip = (product, el) => { if (window.showNutriScoreTooltip) window.showNutriScoreTooltip(el, `${product.name}\nGrade: ${product.grade || 'C'}`); };
 const hideTooltip = () => { if (window.hideNutriScoreTooltip) window.hideNutriScoreTooltip(); };
-const showActivatePrompt = (cb) => { if (window.showActivatePrompt) return window.showActivatePrompt(cb); if (cb) cb(); };
+const showActivatePrompt = (onActivate, onDismiss) => {
+  if (window.showActivatePrompt) return window.showActivatePrompt(onActivate, onDismiss);
+  if (onActivate) onActivate();
+};
 
 const productData = {
   grade: 'B',
@@ -93,6 +96,7 @@ function refreshOverlay() {
       } else {
         // If IconLayer isn't available, fallback to adding a simple badge
         const badge = document.createElement('div');
+        badge.className = 'nutriscore-icon';
         badge.textContent = product.grade || productData.grade;
         badge.style.position = 'absolute';
         badge.style.zIndex = 9999;
@@ -159,10 +163,43 @@ function setupOverlay() {
   observeProductChanges();
 }
 
+function markPromptSeen() {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ nsPromptSeen: true }, () => {});
+    }
+  } catch (e) {}
+}
+
 function initializeNutriScoreExtension() {
-  showActivatePrompt(() => {
-    setupOverlay();
-  });
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get(['nsActive', 'nsPromptSeen'], (result = {}) => {
+      if (result.nsActive === true) {
+        setupOverlay();
+        return;
+      }
+
+      if (result.nsPromptSeen === true) {
+        return;
+      }
+
+      showActivatePrompt(() => {
+        markPromptSeen();
+        try {
+          if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.set({ nsActive: true }, () => {});
+          }
+        } catch (e) {}
+        setupOverlay();
+      }, () => {
+        markPromptSeen();
+      });
+    });
+  } else {
+    showActivatePrompt(() => {
+      setupOverlay();
+    }, () => {});
+  }
 }
 
 function repositionIcons() {
@@ -184,6 +221,17 @@ function shutdown() {
     }
   }
   iconInstances = [];
+
+  // Persist inactive state so popup and other scripts stay in sync
+  try { if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) chrome.storage.local.set({ nsActive: false }); } catch(e) {}
+}
+
+function resetNutriScoreState() {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ nsActive: false, nsPromptSeen: false }, () => {});
+    }
+  } catch (e) {}
 }
 
 // Expose a simple global API so the rest of the non-module scripts can call into this runner
@@ -193,5 +241,6 @@ if (typeof window !== 'undefined') {
   window.refreshNutriScoreOverlay = refreshOverlay;
   window.repositionNutriScoreIcons = repositionIcons;
   window.shutdownNutriScore = shutdown;
+  window.resetNutriScoreState = resetNutriScoreState;
   window.isSupportedNutriScoreHost = isSupportedHost;
 }

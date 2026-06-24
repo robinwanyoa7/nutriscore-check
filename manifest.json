@@ -26,6 +26,7 @@
         "nutrientBar.js",
         "overlayLayer.js",
         "tooltip.js",
+        "onlineStoreRunner.js",
         "activatePrompt.js",
         "content.js"
       ],

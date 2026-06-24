@@ -20,6 +20,13 @@
     isActive = true;
     console.log('[NutriScore] Activated');
 
+    // Persist active state so the popup and other scripts stay in sync
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ nsActive: true }, () => {});
+      }
+    } catch (e) {}
+
     // Process existing products
     processProducts();
 
@@ -43,6 +50,13 @@
 
     // Clear state
     processedContainers.clear();
+
+    // Persist inactive state so the popup and other scripts stay in sync
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ nsActive: false }, () => {});
+      }
+    } catch (e) {}
   }
 
   /* ----------------------------------------------------------------
@@ -65,15 +79,17 @@
     console.log(`[NutriScore] Found ${products.length} products`);
 
     for (const product of products) {
-      const { element, key } = product;
-      
-      // Skip if already processed
-      const productKey = key || element.dataset.productId || element.dataset.sku || element.id || element.outerHTML.slice(0, 50);
-      if (processedContainers.has(productKey)) continue;
-      processedContainers.add(productKey);
+      const container = product.element || product.anchorElement || document.body;
+      if (!container || typeof container.querySelector !== 'function') continue;
 
-      // Inject the grade icon
-      injectGradeIcon(element, product);
+      if (processedContainers.has(container)) continue;
+      if (container.querySelector('.nutriscore-icon')) {
+        processedContainers.add(container);
+        continue;
+      }
+
+      processedContainers.add(container);
+      injectGradeIcon(container, product);
     }
   }
 
@@ -149,6 +165,17 @@ function injectGradeIcon(container, product) {
      OBSERVER - Watch for new products
      ---------------------------------------------------------------- */
 
+  function isOurInjectedNode(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+    if (node.classList.contains('nutriscore-icon') || node.classList.contains('nutriscore-activate-backdrop')) {
+      return true;
+    }
+    if (node.querySelector && node.querySelector('.nutriscore-icon, .nutriscore-activate-backdrop')) {
+      return true;
+    }
+    return false;
+  }
+
   function startObserver() {
     if (observer) {
       observer.disconnect();
@@ -160,10 +187,14 @@ function injectGradeIcon(container, product) {
       // Check if new products might have been added
       let shouldProcess = false;
       for (const mutation of mutations) {
-        if (mutation.addedNodes.length) {
-          shouldProcess = true;
-          break;
+        if (!mutation.addedNodes.length) continue;
+        for (const node of mutation.addedNodes) {
+          if (!isOurInjectedNode(node)) {
+            shouldProcess = true;
+            break;
+          }
         }
+        if (shouldProcess) break;
       }
 
       if (shouldProcess) {
@@ -228,20 +259,53 @@ function injectGradeIcon(container, product) {
      INITIALIZATION
      ---------------------------------------------------------------- */
 
-  function initialize() {
-    // Prefer the centralized runner initialization when available
-    if (typeof window.initializeNutriScoreExtension === 'function') {
-      window.initializeNutriScoreExtension();
-      return;
-    }
+  function markPromptSeen() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ nsPromptSeen: true }, () => {});
+      }
+    } catch (e) {}
+  }
 
-    // Fallback: Add the activation prompt immediately when the page loads
-    if (typeof window.showActivatePrompt === 'function') {
-      window.showActivatePrompt(() => {
+  function initialize() {
+    const initializeNow = () => {
+      if (typeof window.initializeNutriScoreExtension === 'function') {
+        window.initializeNutriScoreExtension();
+        return;
+      }
+
+      // Fallback: Add the activation prompt only on the first run
+      if (typeof window.showActivatePrompt === 'function') {
+        window.showActivatePrompt(() => {
+          markPromptSeen();
+          activateNutriScore();
+        }, () => {
+          markPromptSeen();
+        });
+      } else {
         activateNutriScore();
+      }
+    };
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['nsActive', 'nsPromptSeen'], (result = {}) => {
+        if (result.nsActive === true) {
+          if (typeof window.initializeNutriScoreExtension === 'function') {
+            window.initializeNutriScoreExtension();
+          } else {
+            activateNutriScore();
+          }
+          return;
+        }
+
+        if (result.nsPromptSeen === true) {
+          return;
+        }
+
+        initializeNow();
       });
     } else {
-      activateNutriScore();
+      initializeNow();
     }
   }
 

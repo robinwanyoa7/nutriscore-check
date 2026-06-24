@@ -88,7 +88,7 @@
       this.iconElement.dataset.grade = this.grade;
       this.iconElement.dataset.product = this.productName;
 
-      // Style the icon bar. Start hidden; we'll show it on container hover.
+      // Style the icon bar. Show it immediately and keep it interactive.
       this.iconElement.style.cssText = `
         position: absolute;
         top: 8px;
@@ -111,8 +111,8 @@
         border: 2px solid rgba(255,255,255,0.15);
         padding: 0 12px;
         user-select: none;
-        opacity: 0; /* hidden until hover */
-        pointer-events: none;
+        opacity: 1;
+        pointer-events: auto;
       `;
 
       const letterSpan = document.createElement('span');
@@ -168,21 +168,6 @@
 
       // Make container relative for positioning
       this.ensureContainerPosition();
-
-      // Show the icon only while the user hovers the product container
-      this._showHandler = () => {
-        this.iconElement.style.opacity = '1';
-        this.iconElement.style.pointerEvents = 'auto';
-        this.iconElement.style.transform = 'scale(1.03)';
-      };
-      this._hideHandler = () => {
-        this.iconElement.style.opacity = '0';
-        this.iconElement.style.pointerEvents = 'none';
-        this.iconElement.style.transform = 'scale(1)';
-      };
-
-      this.container.addEventListener('mouseenter', this._showHandler);
-      this.container.addEventListener('mouseleave', this._hideHandler);
 
       // Add click handler
       this.iconElement.addEventListener('click', (e) => {
@@ -323,11 +308,6 @@
       if (this.iconElement && this.iconElement.parentNode) {
         this.iconElement.remove();
       }
-      // Remove hover listeners from container
-      try {
-        if (this._showHandler) this.container.removeEventListener('mouseenter', this._showHandler);
-        if (this._hideHandler) this.container.removeEventListener('mouseleave', this._hideHandler);
-      } catch (e) {}
       this.iconElement = null;
     }
 

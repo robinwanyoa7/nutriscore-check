@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  function showActivatePrompt(onActivate) {
+  function showActivatePrompt(onActivate, onDismiss) {
     if (document.querySelector('.nutriscore-activate-backdrop')) return;
 
     const backdrop = document.createElement('div');
@@ -68,10 +68,12 @@
     activateButton.addEventListener('click', () => {
       backdrop.remove();
       if (onActivate) onActivate();
+      if (onDismiss) onDismiss();
     });
 
     dismissButton.addEventListener('click', () => {
       backdrop.remove();
+      if (onDismiss) onDismiss();
     });
 
     buttonRow.appendChild(activateButton);
