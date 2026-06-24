@@ -1,3 +1,4 @@
+/* tooltip.js - Small floating tooltip helper used by icon hover states */
 (function() {
   'use strict';
 

@@ -88,7 +88,7 @@
       this.iconElement.dataset.grade = this.grade;
       this.iconElement.dataset.product = this.productName;
 
-      // Style the icon bar
+      // Style the icon bar. Start hidden; we'll show it on container hover.
       this.iconElement.style.cssText = `
         position: absolute;
         top: 8px;
@@ -98,29 +98,43 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 110px;
+        min-width: 90px;
         height: 36px;
         border-radius: 999px;
-        background: #16a34a;
+        background: ${this.getGradeColor(this.grade)};
         color: white;
         font-weight: 700;
         font-size: 14px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.18s ease;
         border: 2px solid rgba(255,255,255,0.15);
-        padding: 0 14px;
+        padding: 0 12px;
         user-select: none;
+        opacity: 0; /* hidden until hover */
+        pointer-events: none;
       `;
 
       const letterSpan = document.createElement('span');
-      letterSpan.textContent = 'Nutriscore';
+      // Show the computed grade (A-E) prominently on the badge
+      letterSpan.textContent = this.grade;
       letterSpan.style.cssText = `
         position: relative;
         z-index: 1;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
       `;
       this.iconElement.appendChild(letterSpan);
+
+      // Small label to the right for clarity
+      const label = document.createElement('span');
+      label.textContent = 'NutriScore';
+      label.style.cssText = `
+        margin-left: 8px;
+        font-size: 11px;
+        opacity: 0.95;
+        font-weight: 700;
+      `;
+      this.iconElement.appendChild(label);
 
       const hoverCard = document.createElement('div');
       hoverCard.className = 'nutriscore-icon-hovercard';
@@ -154,6 +168,21 @@
 
       // Make container relative for positioning
       this.ensureContainerPosition();
+
+      // Show the icon only while the user hovers the product container
+      this._showHandler = () => {
+        this.iconElement.style.opacity = '1';
+        this.iconElement.style.pointerEvents = 'auto';
+        this.iconElement.style.transform = 'scale(1.03)';
+      };
+      this._hideHandler = () => {
+        this.iconElement.style.opacity = '0';
+        this.iconElement.style.pointerEvents = 'none';
+        this.iconElement.style.transform = 'scale(1)';
+      };
+
+      this.container.addEventListener('mouseenter', this._showHandler);
+      this.container.addEventListener('mouseleave', this._hideHandler);
 
       // Add click handler
       this.iconElement.addEventListener('click', (e) => {
@@ -217,7 +246,7 @@
       if (!this.iconElement) return;
       
       this.iconElement.style.transform = 'scale(0)';
-      this.iconElement.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      this.iconElement.style.transition = 'transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)';
       
       // Trigger reflow
       void this.iconElement.offsetWidth;
@@ -294,6 +323,11 @@
       if (this.iconElement && this.iconElement.parentNode) {
         this.iconElement.remove();
       }
+      // Remove hover listeners from container
+      try {
+        if (this._showHandler) this.container.removeEventListener('mouseenter', this._showHandler);
+        if (this._hideHandler) this.container.removeEventListener('mouseleave', this._hideHandler);
+      } catch (e) {}
       this.iconElement = null;
     }
 

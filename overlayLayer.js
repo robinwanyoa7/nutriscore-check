@@ -1,3 +1,4 @@
+/* overlayLayer.js - Creates and manages the product detail overlay shown when an icon is clicked */
 (function() {
   'use strict';
 

@@ -1,3 +1,4 @@
+/* activatePrompt.js - Shows a first-run activation prompt to enable NutriScore on the current page */
 (function() {
   'use strict';
 

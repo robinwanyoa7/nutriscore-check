@@ -1,3 +1,4 @@
+/* nutrientBar.js - Renders a compact nutrient breakdown bar used inside the product overlay */
 (function() {
   'use strict';
 

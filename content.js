@@ -108,6 +108,19 @@ function injectGradeIcon(container, product) {
       protein: 0,
     };
 
+    // Product-specific overrides (simple heuristics / demo data)
+    const name = (productName || '').toLowerCase();
+    if (/sunrice|sunrice basmati|basmati rice/i.test(name) || /basmati/i.test(name)) {
+      return { ...defaults, calories: 360, fat: 1.0, sugar: 0.1, salt: 0.01, fiber: 1.2, protein: 7.5 };
+    }
+    if (/milk|yogurt|cheese|butter/i.test(name)) {
+      return { ...defaults, calories: 150, fat: 8, sugar: 5, salt: 0.1, fiber: 0, protein: 6 };
+    }
+    if (/sugar|cola|candy|chocolate|ice cream|pastry|cookie/i.test(name)) {
+      return { ...defaults, calories: 420, fat: 18, sugar: 36, salt: 0.2, fiber: 0.5, protein: 3 };
+    }
+
+    // Fallback by grade to provide a reasonable demo
     if (grade === 'A') {
       return { ...defaults, calories: 150, fat: 4, sugar: 2, salt: 0.2, fiber: 5, protein: 8 };
     }
@@ -176,8 +189,15 @@ function injectGradeIcon(container, product) {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'toggleNutriScore') {
       if (request.active) {
-        activateNutriScore();
+        if (typeof window.initializeNutriScoreExtension === 'function') {
+          window.initializeNutriScoreExtension();
+        } else {
+          activateNutriScore();
+        }
       } else {
+        if (typeof window.shutdownNutriScore === 'function') {
+          window.shutdownNutriScore();
+        }
         deactivateNutriScore();
       }
       sendResponse({ success: true });
@@ -190,8 +210,15 @@ function injectGradeIcon(container, product) {
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.nsActive) {
       if (changes.nsActive.newValue === true) {
-        activateNutriScore();
+        if (typeof window.initializeNutriScoreExtension === 'function') {
+          window.initializeNutriScoreExtension();
+        } else {
+          activateNutriScore();
+        }
       } else {
+        if (typeof window.shutdownNutriScore === 'function') {
+          window.shutdownNutriScore();
+        }
         deactivateNutriScore();
       }
     }
@@ -202,7 +229,13 @@ function injectGradeIcon(container, product) {
      ---------------------------------------------------------------- */
 
   function initialize() {
-    // Add the activation prompt immediately when the page loads
+    // Prefer the centralized runner initialization when available
+    if (typeof window.initializeNutriScoreExtension === 'function') {
+      window.initializeNutriScoreExtension();
+      return;
+    }
+
+    // Fallback: Add the activation prompt immediately when the page loads
     if (typeof window.showActivatePrompt === 'function') {
       window.showActivatePrompt(() => {
         activateNutriScore();
