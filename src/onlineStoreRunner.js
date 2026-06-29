@@ -19,7 +19,7 @@ const productData = {
   name: 'Whole Grain Oat Cereal',
   size: '500g',
   brand: "Kellogg's",
-  retailer: 'Walmart',
+  retailer: 'Naivas',
   nutrients: [
     { label: 'Calories', value: 362, max: 500, unit: ' kcal' },
     { label: 'Sugar', value: 8.2, max: 25, unit: 'g' },
@@ -34,8 +34,8 @@ const productData = {
 };
 
 function isSupportedHost() {
-  // Allow any subdomain/TLD for the three supported retailers
-  return /(carrefour|naivas|jumia)\./i.test(location.hostname);
+  // Allow any Naivas subdomain/TLD
+  return /(?:^|\.)naivas\./i.test(location.hostname);
 }
 
 function createFallbackProduct() {

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NutriScore — About the Extension</title>
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <span class="logo-mark">N</span>
+        <span class="logo-text">NutriScore <span class="logo-badge">Extension</span></span>
+      </div>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#stores">Stores</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <h1>NutriScore</h1>
+    <p class="tag">Quick nutritional hints on shopping pages</p>
+  </header>
+
+  <main class="container">
+
+    <section id="about">
+      <h2>About NutriScore</h2>
+      <p>NutriScore is a lightweight browser extension for shoppers who want quick, readable nutrition hints while browsing Kenyan grocery products online. It adds a simple grade badge to products and opens an overlay with estimated nutrient details when you click it.</p>
+      <p>The goal is to make healthier choices easier at a glance, without leaving the page or needing a separate app.</p>
+    </section>
+
+    <section id="features">
+      <h2>Key features</h2>
+      <p>Everything you need to make smarter food choices while you shop — without leaving the page.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <i class="ti ti-certificate"></i>
+          <h3>Grade badges</h3>
+          <p>Compact A–E score badges appear on each product card as you hover.</p>
+        </div>
+        <div class="feature-card">
+          <i class="ti ti-chart-bar"></i>
+          <h3>Nutrient overlay</h3>
+          <p>Click a badge to see calories, fat, sugar, salt, fiber, and protein estimates.</p>
+        </div>
+        <div class="feature-card">
+          <i class="ti ti-bolt"></i>
+          <h3>Instant scan</h3>
+          <p>Lightweight content script runs entirely in your browser — no data sent anywhere.</p>
+        </div>
+        <div class="feature-card">
+          <i class="ti ti-arrows-compare"></i>
+          <h3>Compare at a glance</h3>
+          <p>Quickly compare multiple products side by side as you browse.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="example">
+      <h2>Example product preview</h2>
+      <p>This example shows how NutriScore places a grade badge on a product card and displays a nutrient detail overlay for a single item.</p>
+      <div class="example-panel">
+        <div class="product-sample">
+          <div class="product-sample-top">
+            <div>
+              <p class="sample-label">Product card</p>
+              <h3>Naivas Fresh Spinach</h3>
+              <p class="sample-meta">Naivas • 250 g</p>
+            </div>
+            <div class="nutri-badge badge-a">A</div>
+          </div>
+          <p class="sample-copy">A strong grade badge is attached to the product tile to make the score instantly visible while browsing.</p>
+          <div class="badge-row">
+            <span class="nutri-pill badge-a">A</span>
+            <span class="nutri-pill badge-b">B</span>
+            <span class="nutri-pill badge-c">C</span>
+          </div>
+        </div>
+
+        <div class="overlay-sample">
+          <div class="overlay-sample-header">
+            <div>
+              <p class="sample-label">Nutrient overlay</p>
+              <h3>Naivas Fresh Spinach</h3>
+            </div>
+            <div class="overlay-grade">A</div>
+          </div>
+          <p class="sample-copy">Tap a badge to open a detail panel with estimated nutrients and a summary grade.</p>
+          <div class="nutrient-list">
+            <div class="nutrient-item">
+              <span>Calories</span>
+              <strong>22 kcal</strong>
+              <div class="nutrient-bar"><span style="width: 16%;"></span></div>
+            </div>
+            <div class="nutrient-item">
+              <span>Fat</span>
+              <strong>0.3 g</strong>
+              <div class="nutrient-bar"><span style="width: 8%;"></span></div>
+            </div>
+            <div class="nutrient-item">
+              <span>Sugar</span>
+              <strong>0.4 g</strong>
+              <div class="nutrient-bar"><span style="width: 10%;"></span></div>
+            </div>
+            <div class="nutrient-item">
+              <span>Salt</span>
+              <strong>0.02 g</strong>
+              <div class="nutrient-bar"><span style="width: 4%;"></span></div>
+            </div>
+            <div class="nutrient-item">
+              <span>Fiber</span>
+              <strong>2.8 g</strong>
+              <div class="nutrient-bar"><span style="width: 35%;"></span></div>
+            </div>
+            <div class="nutrient-item">
+              <span>Protein</span>
+              <strong>3.0 g</strong>
+              <div class="nutrient-bar"><span style="width: 30%;"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <h2>How to install in Chrome</h2>
+      <p>Get NutriScore running in under two minutes with Chrome's developer mode.</p>
+      <ol class="install-steps">
+        <li>
+          <strong>Download the extension folder</strong>
+          <p>Clone or download the project so you have a local folder containing <code>manifest.json</code>.</p>
+        </li>
+        <li>
+          <strong>Open Chrome extensions</strong>
+          <p>Navigate to <code>chrome://extensions</code> in your address bar.</p>
+        </li>
+        <li>
+          <strong>Enable Developer mode</strong>
+          <p>Toggle the <strong>Developer mode</strong> switch in the top-right corner.</p>
+        </li>
+        <li>
+          <strong>Load unpacked extension</strong>
+          <p>Click <strong>Load unpacked</strong> and select the folder containing <code>manifest.json</code>.</p>
+        </li>
+        <li>
+          <strong>Activate on a shopping page</strong>
+          <p>Open the NutriScore popup from your toolbar and click <strong>Activate</strong>.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="stores">
+      <h2>Supported stores</h2>
+      <p>NutriScore currently supports Naivas online stores in Kenya. More Kenyan retailers may be added as the scraper improves.</p>
+      <ul class="stores-grid">
+        <li><i class="ti ti-shopping-cart"></i> Naivas</li>
+      </ul>
+      <p>Support is currently focused on Naivas; if you'd like other Kenyan online retailers supported in future, please see the <a href="README.md">project README</a>.</p>
+    </section>
+
+    <section id="thanks">
+      <h2>A word of thanks</h2>
+      <div class="appreciate-box">
+        <i class="ti ti-heart"></i>
+        <div>
+          <h3>Thank you for using NutriScore</h3>
+          <p>Every person who installs this extension is choosing to be a little more mindful about what goes into their basket. That means a lot. NutriScore is a side project built out of genuine curiosity — no analytics, no ads, no data collection. If it's helped you make even one better food choice, it's done its job. Feedback, ideas, and contributions are always welcome.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Contribute / Learn more</h2>
+      <p>See the project README for development notes and file descriptions: <a href="README.md">README.md</a></p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <small>NutriScore — local demo &mdash; not an official nutrition authority.</small>
+  </footer>
+
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href'))
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>

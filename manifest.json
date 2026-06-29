@@ -10,7 +10,7 @@
     "file:///*"
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup/popup.html",
     "default_title": "NutriScore"
   },
   "content_scripts": [
@@ -21,14 +21,14 @@
         "file:///*"
       ],
       "js": [
-        "scraper.js",
-        "iconLayer.js",
-        "nutrientBar.js",
-        "overlayLayer.js",
-        "tooltip.js",
-        "onlineStoreRunner.js",
-        "activatePrompt.js",
-        "content.js"
+        "src/scraper.js",
+        "src/iconLayer.js",
+        "src/nutrientBar.js",
+        "src/overlayLayer.js",
+        "src/tooltip.js",
+        "src/onlineStoreRunner.js",
+        "src/activatePrompt.js",
+        "src/content.js"
       ],
       "run_at": "document_idle"
     }
