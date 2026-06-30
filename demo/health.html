@@ -29,13 +29,31 @@
 
   <main class="container">
     <section>
-      <p>Use this page to record health conditions or dietary preferences that NutriScore can reference in tests.</p>
-      <div class="health-panel">
-        <label for="healthDetails">Health condition / dietary notes</label>
-        <textarea id="healthDetails" placeholder="e.g. diabetes, hypertension, low-sodium diet, gluten sensitivity"></textarea>
-        <p class="health-note">This page is for testing the health details flow.</p>
-      </div>
-    </section>
+  <p>Use this page to record health conditions or dietary preferences that NutriScore can reference in tests.</p>
+  <div class="health-panel">
+    <fieldset class="health-conditions">
+      <legend>Health conditions / dietary preferences</legend>
+
+      <label><input type="checkbox" name="condition" value="diabetes"> Diabetes</label>
+      <label><input type="checkbox" name="condition" value="hypertension"> Hypertension</label>
+      <label><input type="checkbox" name="condition" value="low-sodium"> Low-sodium diet</label>
+      <label><input type="checkbox" name="condition" value="gluten-sensitivity"> Gluten sensitivity</label>
+      <label><input type="checkbox" name="condition" value="lactose-intolerance"> Lactose intolerance</label>
+      <label><input type="checkbox" name="condition" value="nut-allergy"> Nut allergy</label>
+      <label><input type="checkbox" name="condition" value="vegan"> Vegan</label>
+      <label><input type="checkbox" name="condition" value="vegetarian"> Vegetarian</label>
+      <label><input type="checkbox" name="condition" value="low-fat"> Low-fat diet</label>
+      <label><input type="checkbox" name="condition" value="heart-disease"> Heart disease</label>
+    </fieldset>
+
+    <label for="healthDetails">Additional information</label>
+    <textarea id="healthDetails" placeholder="Add any other details not covered above (e.g. specific allergens, custom restrictions)"></textarea>
+
+    <button type="button" id="saveHealthDetails" class="save-btn">Save</button>
+
+    <p class="health-note">This page is for testing the health details flow.</p>
+  </div>
+</section>
   </main>
 
   <footer class="site-footer">
