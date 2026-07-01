@@ -24,41 +24,53 @@
 
   <header class="site-header">
     <h1>Health details</h1>
-    <p class="tag">Enter your conditions or dietary notes for testing.</p>
+    <p class="tag">Sign in to save your conditions or dietary notes to your account.</p>
   </header>
 
   <main class="container">
     <section>
-  <p>Use this page to record health conditions or dietary preferences that NutriScore can reference in tests.</p>
-  <div class="health-panel">
-    <fieldset class="health-conditions">
-      <legend>Health conditions / dietary preferences</legend>
+      <p>Use this page to record health conditions or dietary preferences that NutriScore can reference in tests.</p>
 
-      <label><input type="checkbox" name="condition" value="diabetes"> Diabetes</label>
-      <label><input type="checkbox" name="condition" value="hypertension"> Hypertension</label>
-      <label><input type="checkbox" name="condition" value="low-sodium"> Low-sodium diet</label>
-      <label><input type="checkbox" name="condition" value="gluten-sensitivity"> Gluten sensitivity</label>
-      <label><input type="checkbox" name="condition" value="lactose-intolerance"> Lactose intolerance</label>
-      <label><input type="checkbox" name="condition" value="nut-allergy"> Nut allergy</label>
-      <label><input type="checkbox" name="condition" value="vegan"> Vegan</label>
-      <label><input type="checkbox" name="condition" value="vegetarian"> Vegetarian</label>
-      <label><input type="checkbox" name="condition" value="low-fat"> Low-fat diet</label>
-      <label><input type="checkbox" name="condition" value="heart-disease"> Heart disease</label>
-    </fieldset>
+      <!-- Account section: shows sign-in button when signed out,
+           and account email + sign-out button when signed in. -->
+      <div class="account-panel">
+        <button type="button" id="signInWithGoogle" class="cta-button">Sign in with Google</button>
+        <button type="button" id="signOutButton" class="save-btn" style="display:none;">Sign out</button>
+      </div>
 
-    <label for="healthDetails">Additional information</label>
-    <textarea id="healthDetails" placeholder="Add any other details not covered above (e.g. specific allergens, custom restrictions)"></textarea>
+      <div class="health-panel">
+        <fieldset class="health-conditions">
+          <legend>Health conditions / dietary preferences</legend>
 
-    <button type="button" id="saveHealthDetails" class="save-btn">Save</button>
-    <p id="saveStatus" class="health-note" aria-live="polite"></p>
-    <p class="health-note">This page is for testing the health details flow.</p>
-  </div>
-</section>
+          <label><input type="checkbox" name="condition" value="diabetes"> Diabetes</label>
+          <label><input type="checkbox" name="condition" value="hypertension"> Hypertension</label>
+          <label><input type="checkbox" name="condition" value="low-sodium"> Low-sodium diet</label>
+          <label><input type="checkbox" name="condition" value="gluten-sensitivity"> Gluten sensitivity</label>
+          <label><input type="checkbox" name="condition" value="lactose-intolerance"> Lactose intolerance</label>
+          <label><input type="checkbox" name="condition" value="nut-allergy"> Nut allergy</label>
+          <label><input type="checkbox" name="condition" value="vegan"> Vegan</label>
+          <label><input type="checkbox" name="condition" value="vegetarian"> Vegetarian</label>
+          <label><input type="checkbox" name="condition" value="low-fat"> Low-fat diet</label>
+          <label><input type="checkbox" name="condition" value="heart-disease"> Heart disease</label>
+        </fieldset>
+
+        <label for="healthDetails">Additional information</label>
+        <textarea id="healthDetails" placeholder="Add any other details not covered above (e.g. specific allergens, custom restrictions)"></textarea>
+
+        <button type="button" id="saveHealthDetails" class="save-btn">Save</button>
+        <p id="saveStatus" class="health-note" aria-live="polite"></p>
+        <p class="health-note">Sign in with Google to save details to your account. This page is for testing the health details flow.</p>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
     <small>NutriScore — health details test page.</small>
   </footer>
-  <script src="health.js"></script>
+
+  <!-- health.js is now bundled with esbuild (see build.js) since it uses
+       ES module imports for the Firebase SDK, which raw <script> tags
+       can't resolve from node_modules directly. -->
+  <script src="dist/health.bundle.js"></script>
 </body>
 </html>
