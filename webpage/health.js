@@ -39,6 +39,8 @@ const db = getFirestore(app);
 
 // Track the currently signed-in user's UID (null when signed out)
 let currentUserId = null;
+// Also keep the current Firebase `User` object when signed in
+let currentUser = null;
 
 /**
  * Kicks off Google sign-in using Chrome's built-in identity API,
@@ -51,6 +53,19 @@ async function signInWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
     currentUserId = result.user.uid;
+    currentUser = result.user;
+    // persist a small public profile snapshot so other pages can show avatar
+    try {
+      const snapshot = {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName || '',
+        email: currentUser.email || '',
+        photoURL: currentUser.photoURL || ''
+      };
+      localStorage.setItem('nutriscoreUser', JSON.stringify(snapshot));
+    } catch (e) {
+      console.warn('Failed to persist user snapshot:', e);
+    }
 
     showStatus(`Signed in as ${result.user.email}`);
     updateAccountUI(true);
@@ -69,6 +84,8 @@ async function signInWithGoogle() {
 function signOutUser() {
   auth.signOut().then(() => {
     currentUserId = null;
+    currentUser = null;
+    try { localStorage.removeItem('nutriscoreUser'); } catch (e) {}
     applyStoredPreferences({ conditions: [], additionalInfo: '' });
     updateAccountUI(false);
     showStatus('Signed out.');
@@ -79,30 +96,57 @@ function signOutUser() {
  * Reads which condition checkboxes are currently checked on the page.
  * Returns an array of string values, e.g. ['diabetes', 'vegan'].
  */
-function readSelections() {
-  const checkboxes = Array.from(document.querySelectorAll('input[name="condition"]'));
+function readCheckboxSelections(fieldName) {
+  const checkboxes = Array.from(document.querySelectorAll(`input[name="${fieldName}"]`));
   return checkboxes
     .filter((checkbox) => checkbox.checked)
     .map((checkbox) => checkbox.value);
 }
 
+function getInputValue(id) {
+  const input = document.getElementById(id);
+  return input ? input.value.trim() : '';
+}
+
+function getNumberValue(id) {
+  const input = document.getElementById(id);
+  if (!input) return null;
+  const value = Number(input.value);
+  return Number.isFinite(value) ? value : null;
+}
+
+function setInputValue(id, value) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.value = value !== undefined && value !== null ? value : '';
+}
+
 /**
  * Applies a saved preferences object back onto the form —
- * checks the right boxes and fills the notes textarea.
+ * checks the right boxes and fills the form fields.
  */
 function applyStoredPreferences(preferences) {
   if (!preferences) return;
 
-  const checkboxes = Array.from(document.querySelectorAll('input[name="condition"]'));
-  checkboxes.forEach((checkbox) => {
+  setInputValue('age', preferences.age);
+  setInputValue('gender', preferences.gender);
+  setInputValue('weight', preferences.weight);
+  setInputValue('height', preferences.height);
+  setInputValue('allergies', preferences.allergies);
+  setInputValue('healthGoals', preferences.healthGoals);
+  setInputValue('otherNotes', preferences.otherNotes);
+
+  const conditionCheckboxes = Array.from(document.querySelectorAll('input[name="condition"]'));
+  conditionCheckboxes.forEach((checkbox) => {
     checkbox.checked =
       Array.isArray(preferences.conditions) && preferences.conditions.includes(checkbox.value);
   });
 
-  const details = document.getElementById('healthDetails');
-  if (details && typeof preferences.additionalInfo === 'string') {
-    details.value = preferences.additionalInfo;
-  }
+  const dietaryCheckboxes = Array.from(document.querySelectorAll('input[name="diet"]'));
+  dietaryCheckboxes.forEach((checkbox) => {
+    checkbox.checked =
+      Array.isArray(preferences.dietaryPreferences) && preferences.dietaryPreferences.includes(checkbox.value);
+  });
 }
 
 /**
@@ -116,20 +160,26 @@ async function saveHealthPreferencesToFirestore() {
     return;
   }
 
-  const healthDetails = document.getElementById('healthDetails');
   const preferences = {
-    conditions: readSelections(),
-    additionalInfo: healthDetails ? healthDetails.value.trim() : '',
+    age: getNumberValue('age'),
+    gender: getInputValue('gender'),
+    weight: getNumberValue('weight'),
+    height: getNumberValue('height'),
+    allergies: getInputValue('allergies'),
+    conditions: readCheckboxSelections('condition'),
+    dietaryPreferences: readCheckboxSelections('diet'),
+    healthGoals: getInputValue('healthGoals'),
+    otherNotes: getInputValue('otherNotes'),
     updatedAt: new Date().toISOString()
   };
 
   try {
     // Path: users/{uid}/settings/health — one health doc per user
     await setDoc(doc(db, 'users', currentUserId, 'settings', 'health'), preferences);
-    showStatus('Health details saved to your account.');
+    showStatus('Health profile saved to your account.');
   } catch (error) {
     console.error('Failed to save health preferences to Firestore:', error);
-    showStatus('Unable to save health details. Please try again.', true);
+    showStatus('Unable to save health profile. Please try again.', true);
   }
 }
 
@@ -167,10 +217,24 @@ function updateAccountUI(isSignedIn) {
   const signInButton = document.getElementById('signInWithGoogle');
   const signOutButton = document.getElementById('signOutButton');
   const saveButton = document.getElementById('saveHealthDetails');
+  const navSignButton = document.getElementById('navSignButton');
 
   if (signInButton) signInButton.style.display = isSignedIn ? 'none' : 'inline-block';
   if (signOutButton) signOutButton.style.display = isSignedIn ? 'inline-block' : 'none';
   if (saveButton) saveButton.disabled = !isSignedIn;
+
+  if (navSignButton) {
+    if (isSignedIn && currentUser && currentUser.photoURL) {
+      navSignButton.innerHTML = '';
+      const img = document.createElement('img');
+      img.className = 'nav-avatar';
+      img.src = currentUser.photoURL;
+      img.alt = currentUser.displayName || currentUser.email || 'Account';
+      navSignButton.appendChild(img);
+    } else {
+      navSignButton.textContent = isSignedIn ? 'Sign out' : 'Sign in';
+    }
+  }
 }
 
 /**
@@ -193,15 +257,38 @@ function init() {
     signOutButton.addEventListener('click', signOutUser);
   }
 
+  const navSignButton = document.getElementById('navSignButton');
+  if (navSignButton) {
+    navSignButton.addEventListener('click', () => {
+      if (currentUserId) {
+        signOutUser();
+      } else {
+        signInWithGoogle();
+      }
+    });
+  }
+
   // Restore session on load if the user was already signed in previously
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      currentUser = user;
       currentUserId = user.uid;
+      try {
+        const snapshot = {
+          uid: user.uid,
+          displayName: user.displayName || '',
+          email: user.email || '',
+          photoURL: user.photoURL || ''
+        };
+        localStorage.setItem('nutriscoreUser', JSON.stringify(snapshot));
+      } catch (e) {}
       showStatus(`Signed in as ${user.email}`);
       updateAccountUI(true);
       await loadHealthPreferencesFromFirestore(currentUserId);
     } else {
+      currentUser = null;
       currentUserId = null;
+      try { localStorage.removeItem('nutriscoreUser'); } catch (e) {}
       updateAccountUI(false);
     }
   });

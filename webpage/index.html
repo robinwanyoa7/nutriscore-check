@@ -11,15 +11,16 @@
 
   <nav class="site-nav">
     <div class="nav-inner">
-      <div class="nav-logo">
+      <a href="index.html" class="nav-logo">
         <span class="logo-mark">N</span>
         <span class="logo-text">NutriScore <span class="logo-badge">Extension</span></span>
-      </div>
+      </a>
       <div class="nav-links">
-        <a href="#about">About</a>
+        <a href="health.html">Health</a>
         <a href="#features">Features</a>
         <a href="#install">Install</a>
         <a href="#stores">Stores</a>
+        <button type="button" id="navSignButton" class="nav-action" onclick="location.href='health.html'">Sign in</button>
       </div>
     </div>
   </nav>
@@ -33,9 +34,9 @@
 
     <section id="about">
       <h2>About NutriScore</h2>
-      <p>NutriScore is a lightweight browser extension for shoppers who want quick, readable nutrition hints while browsing Kenyan grocery products online. It adds a simple grade badge to products and opens an overlay with estimated nutrient details when you click it.</p>
-      <p>The goal is to make healthier choices easier at a glance, without leaving the page or needing a separate app.</p>
-      <a class="cta-button" href="health.html">Store my health details</a>
+      <p>NutriScore is a lightweight browser extension that surfaces quick, readable nutrition hints while you shop online. It overlays a simple grade badge on products and provides estimated nutrient details to help you make healthier choices faster.</p>
+      <p>Provide a brief health profile to get personalized suggestions and tailored guidance directly in your shopping flow.</p>
+      <a class="cta-button" href="health.html">Set up my health profile</a>
     </section>
 
     <section id="features">
@@ -149,6 +150,8 @@
       <p>NutriScore currently supports Naivas online stores in Kenya. More Kenyan retailers may be added as the scraper improves.</p>
       <ul class="stores-grid">
         <li><i class="ti ti-shopping-cart"></i> Naivas</li>
+        <li><i class="ti ti-shopping-cart"></i> Carrefour</li>
+        <li><i class="ti ti-shopping-cart"></i> Quickmart</li>
       </ul>
       <p>Support is currently focused on Naivas; if you'd like other Kenyan online retailers supported in future, please see the <a href="README.md">project README</a>.</p>
     </section>
@@ -172,17 +175,62 @@
   </main>
 
   <footer class="site-footer">
-    <small>NutriScore — local demo &mdash; not an official nutrition authority.</small>
+    <small>NutriScore — personalized nutrition hints while you shop.</small>
   </footer>
 
   <script>
+    const nav = document.querySelector('.site-nav');
+    let lastScrollY = window.scrollY;
+    let isTicking = false;
+
+    function updateNavVisibility() {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 120) {
+        nav.classList.add('hidden');
+      } else {
+        nav.classList.remove('hidden');
+      }
+      lastScrollY = currentScrollY;
+      isTicking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!isTicking) {
+        window.requestAnimationFrame(updateNavVisibility);
+        isTicking = true;
+      }
+    });
+
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
+        nav.classList.remove('hidden');
         document.querySelector(a.getAttribute('href'))
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
+    // show avatar if user signed in elsewhere (health page)
+    try {
+      const raw = localStorage.getItem('nutriscoreUser');
+      if (raw) {
+        const u = JSON.parse(raw);
+        const b = document.getElementById('navSignButton');
+        if (b) {
+          if (u && u.photoURL) {
+            b.innerHTML = '';
+            const img = document.createElement('img');
+            img.className = 'nav-avatar';
+            img.src = u.photoURL;
+            img.alt = u.displayName || u.email || 'Account';
+            b.appendChild(img);
+            b.onclick = () => { location.href = 'health.html'; };
+          } else {
+            b.textContent = 'Profile';
+            b.onclick = () => { location.href = 'health.html'; };
+          }
+        }
+      }
+    } catch (e) {}
   </script>
 </body>
 </html>

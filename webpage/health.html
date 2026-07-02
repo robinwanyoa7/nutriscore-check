@@ -9,27 +9,28 @@
 <body>
   <nav class="site-nav">
     <div class="nav-inner">
-      <div class="nav-logo">
+      <a href="index.html" class="nav-logo">
         <span class="logo-mark">N</span>
         <span class="logo-text">NutriScore <span class="logo-badge">Extension</span></span>
-      </div>
+      </a>
       <div class="nav-links">
-        <a href="index.html#about">About</a>
+        <a href="health.html">Health</a>
         <a href="index.html#features">Features</a>
         <a href="index.html#install">Install</a>
         <a href="index.html#stores">Stores</a>
+        <button type="button" id="navSignButton" class="nav-action">Sign in</button>
       </div>
     </div>
   </nav>
 
   <header class="site-header">
-    <h1>Health details</h1>
-    <p class="tag">Sign in to save your conditions or dietary notes to your account.</p>
+    <h1>Health profile</h1>
+    <p class="tag">Sign in to save your profile, conditions, and dietary preferences.</p>
   </header>
 
   <main class="container">
     <section>
-      <p>Use this page to record health conditions or dietary preferences that NutriScore can reference in tests.</p>
+      <p>Use this page to record your personal health profile. NutriScore uses these details to personalize nutrition hints and product suggestions while you shop.</p>
 
       <!-- Account section: shows sign-in button when signed out,
            and account email + sign-out button when signed in. -->
@@ -39,33 +40,90 @@
       </div>
 
       <div class="health-panel">
+        <fieldset class="health-profile">
+          <legend>Personal profile</legend>
+
+          <label for="age">
+            Age
+            <input id="age" type="number" min="0" placeholder="e.g. 28">
+          </label>
+
+          <label for="gender">
+            Gender
+            <select id="gender">
+              <option value="">Select gender</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="other">Other</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+            </select>
+          </label>
+
+          <label for="weight">
+            Weight (kg)
+            <input id="weight" type="number" min="0" step="0.1" placeholder="e.g. 68.5">
+          </label>
+
+          <label for="height">
+            Height (cm)
+            <input id="height" type="number" min="0" step="0.1" placeholder="e.g. 172">
+          </label>
+        </fieldset>
+
+        <fieldset class="health-allergies">
+          <legend>Allergies</legend>
+          <label for="allergies">
+            Describe any known allergies
+            <textarea id="allergies" placeholder="e.g. peanuts, shellfish, dairy"></textarea>
+          </label>
+        </fieldset>
+
         <fieldset class="health-conditions">
-          <legend>Health conditions / dietary preferences</legend>
+          <legend>Health conditions</legend>
 
           <label><input type="checkbox" name="condition" value="diabetes"> Diabetes</label>
           <label><input type="checkbox" name="condition" value="hypertension"> Hypertension</label>
-          <label><input type="checkbox" name="condition" value="low-sodium"> Low-sodium diet</label>
+          <label><input type="checkbox" name="condition" value="heart-disease"> Heart disease</label>
           <label><input type="checkbox" name="condition" value="gluten-sensitivity"> Gluten sensitivity</label>
           <label><input type="checkbox" name="condition" value="lactose-intolerance"> Lactose intolerance</label>
           <label><input type="checkbox" name="condition" value="nut-allergy"> Nut allergy</label>
-          <label><input type="checkbox" name="condition" value="vegan"> Vegan</label>
-          <label><input type="checkbox" name="condition" value="vegetarian"> Vegetarian</label>
-          <label><input type="checkbox" name="condition" value="low-fat"> Low-fat diet</label>
-          <label><input type="checkbox" name="condition" value="heart-disease"> Heart disease</label>
+          <label><input type="checkbox" name="condition" value="low-sodium"> Low-sodium diet</label>
         </fieldset>
 
-        <label for="healthDetails">Additional information</label>
-        <textarea id="healthDetails" placeholder="Add any other details not covered above (e.g. specific allergens, custom restrictions)"></textarea>
+        <fieldset class="dietary-preferences">
+          <legend>Dietary preferences</legend>
+          <label><input type="checkbox" name="diet" value="vegan"> Vegan</label>
+          <label><input type="checkbox" name="diet" value="vegetarian"> Vegetarian</label>
+          <label><input type="checkbox" name="diet" value="pescatarian"> Pescatarian</label>
+          <label><input type="checkbox" name="diet" value="low-carb"> Low-carb</label>
+          <label><input type="checkbox" name="diet" value="low-fat"> Low-fat</label>
+          <label><input type="checkbox" name="diet" value="keto"> Keto</label>
+          <label><input type="checkbox" name="diet" value="gluten-free"> Gluten-free</label>
+          <label><input type="checkbox" name="diet" value="dairy-free"> Dairy-free</label>
+          <label><input type="checkbox" name="diet" value="paleo"> Paleo</label>
+        </fieldset>
+
+        <fieldset class="health-goals">
+          <legend>Health goals</legend>
+          <label for="healthGoals">
+            Your health goals
+            <textarea id="healthGoals" placeholder="e.g. manage blood sugar, build muscle, improve heart health"></textarea>
+          </label>
+        </fieldset>
+
+        <label for="otherNotes">Other notes</label>
+        <textarea id="otherNotes" placeholder="Add any other details not covered above"></textarea>
 
         <button type="button" id="saveHealthDetails" class="save-btn">Save</button>
         <p id="saveStatus" class="health-note" aria-live="polite"></p>
-        <p class="health-note">Sign in with Google to save details to your account. This page is for testing the health details flow.</p>
+        <p class="health-note">Sign in with Google to securely save and sync your health profile across devices. NutriScore will use this information to tailor guidance and recommendations.</p>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <small>NutriScore — health details test page.</small>
+    <small>NutriScore — personalize your nutrition hints.</small>
   </footer>
 
   <!-- health.js is now bundled with esbuild (see build.js) since it uses
