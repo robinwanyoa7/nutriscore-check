@@ -25,17 +25,19 @@
 
   <header class="site-header">
     <h1>Health profile</h1>
-    <p class="tag">Sign in to save your profile, conditions, and dietary preferences.</p>
+    <p class="tag">Sign up or sign in to save your profile, conditions, and dietary preferences.</p>
   </header>
 
   <main class="container">
     <section>
       <p>Use this page to record your personal health profile. NutriScore uses these details to personalize nutrition hints and product suggestions while you shop.</p>
 
-      <!-- Account section: shows sign-in button when signed out,
-           and account email + sign-out button when signed in. -->
+      <!-- Account section: Sign Up (new account) and Sign In (existing
+           account) are separate actions. Both show Google's account picker
+           so the user explicitly chooses which email to use. -->
       <div class="account-panel">
-        <button type="button" id="signInWithGoogle" class="cta-button">Sign in with Google</button>
+        <button type="button" id="signUpWithGoogle" class="cta-button">Sign up with Google</button>
+        <button type="button" id="signInWithGoogle" class="cta-button--secondary">Sign in with Google</button>
         <button type="button" id="signOutButton" class="save-btn" style="display:none;">Sign out</button>
       </div>
 
@@ -117,7 +119,7 @@
 
         <button type="button" id="saveHealthDetails" class="save-btn">Save</button>
         <p id="saveStatus" class="health-note" aria-live="polite"></p>
-        <p class="health-note">Sign in with Google to securely save and sync your health profile across devices. NutriScore will use this information to tailor guidance and recommendations.</p>
+        <p class="health-note">Sign up (new account) or sign in (existing account) with Google to securely save and sync your health profile across devices. NutriScore will use this information to tailor guidance and recommendations.</p>
       </div>
     </section>
   </main>

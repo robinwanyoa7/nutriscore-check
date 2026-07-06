@@ -1,17 +1,24 @@
 // demo/health.js
-// Persist selected health issues and additional notes to Firestore,
-// tied to the signed-in Google account (via chrome.identity + Firebase Auth).
+// Persist a full health profile (age, gender, allergies, conditions, dietary
+// preferences, goals, notes) to Firestore, tied to a signed-in Google account.
 //
-// NOTE: This file assumes you have a local, bundled copy of the Firebase
-// modular SDK (via webpack/esbuild/rollup) since Manifest V3's CSP blocks
-// remotely-hosted scripts. Adjust the import path below to match your build.
+// Sign Up and Sign In are now separate actions:
+//   - Sign Up: creates a new account. If the chosen email already has an
+//     account, the user is told to use Sign In instead.
+//   - Sign In: logs into an existing account. If the chosen email has no
+//     account yet, the user is told to use Sign Up instead.
+// Both always show Google's account picker (prompt: 'select_account') so
+// the user explicitly chooses which email to use each time.
 
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  onAuthStateChanged
+  getAdditionalUserInfo,
+  onAuthStateChanged,
+  setPersistence,
+  browserSessionPersistence
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -37,40 +44,115 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Session-only persistence: don't silently restore a previous login across
+// browser restarts — combined with the forced account picker below, this
+// keeps sign-in/sign-up a deliberate, explicit action each time.
+setPersistence(auth, browserSessionPersistence).catch((error) => {
+  console.error('Failed to set auth persistence:', error);
+});
+
 // Track the currently signed-in user's UID (null when signed out)
 let currentUserId = null;
 // Also keep the current Firebase `User` object when signed in
 let currentUser = null;
 
 /**
- * Kicks off Google sign-in using Chrome's built-in identity API,
- * then exchanges that token for a Firebase credential so we get
- * a stable Firebase Auth UID to key data against.
+ * Shared popup logic for both Sign Up and Sign In. Always shows Google's
+ * account chooser, then reports back whether the chosen email was already
+ * a registered account (`isNewUser: false`) or brand new (`isNewUser: true`).
+ * Does not decide what to do with that information — the calling function
+ * (signUpWithGoogle / signInWithGoogle) handles that.
  */
-async function signInWithGoogle() {
+async function runGooglePopup() {
   const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  const result = await signInWithPopup(auth, provider);
+  const additionalInfo = getAdditionalUserInfo(result);
+  return { user: result.user, isNewUser: Boolean(additionalInfo && additionalInfo.isNewUser) };
+}
+
+/**
+ * Finalizes a successful sign-in/sign-up: stores the user in memory and
+ * localStorage, updates the UI, and loads any saved health profile.
+ */
+async function completeSignIn(user) {
+  currentUserId = user.uid;
+  currentUser = user;
 
   try {
-    const result = await signInWithPopup(auth, provider);
-    currentUserId = result.user.uid;
-    currentUser = result.user;
-    // persist a small public profile snapshot so other pages can show avatar
-    try {
-      const snapshot = {
-        uid: currentUser.uid,
-        displayName: currentUser.displayName || '',
-        email: currentUser.email || '',
-        photoURL: currentUser.photoURL || ''
-      };
-      localStorage.setItem('nutriscoreUser', JSON.stringify(snapshot));
-    } catch (e) {
-      console.warn('Failed to persist user snapshot:', e);
+    const snapshot = {
+      uid: user.uid,
+      displayName: user.displayName || '',
+      email: user.email || '',
+      photoURL: user.photoURL || ''
+    };
+    localStorage.setItem('nutriscoreUser', JSON.stringify(snapshot));
+  } catch (e) {
+    console.warn('Failed to persist user snapshot:', e);
+  }
+
+  updateAccountUI(true);
+  await loadHealthPreferencesFromFirestore(currentUserId);
+}
+
+/**
+ * Signs the current Firebase session out without disturbing the UI message
+ * that's about to be shown (used when we deliberately reject a Sign Up/Sign
+ * In attempt, e.g. wrong button for that email).
+ */
+async function silentlySignOut() {
+  try {
+    await auth.signOut();
+  } catch (e) {
+    console.warn('Silent sign-out failed:', e);
+  }
+  currentUserId = null;
+  currentUser = null;
+  try { localStorage.removeItem('nutriscoreUser'); } catch (e) {}
+  updateAccountUI(false);
+}
+
+/**
+ * "Sign Up" — creates a new account. Shows the Google account picker so the
+ * user can choose which email to register with. If that email already has
+ * an account, the sign-up is rejected and the user is told to sign in instead.
+ */
+async function signUpWithGoogle() {
+  try {
+    const { user, isNewUser } = await runGooglePopup();
+
+    if (!isNewUser) {
+      await silentlySignOut();
+      showStatus(`An account already exists for ${user.email}. Please use Sign In instead.`, true);
+      return;
     }
 
-    showStatus(`Signed in as ${result.user.email}`);
-    updateAccountUI(true);
-    // Once signed in, pull any previously saved preferences for this account
-    await loadHealthPreferencesFromFirestore(currentUserId);
+    showStatus(`Account created for ${user.email}.`);
+    await completeSignIn(user);
+  } catch (error) {
+    console.error('Firebase sign-up failed:', error);
+    showStatus('Sign-up failed. Please try again.', true);
+  }
+}
+
+/**
+ * "Sign In" — logs into an existing account. Shows the Google account picker
+ * so the user can choose which email to use. If that email has no account
+ * yet, the sign-in is rejected and the user is told to sign up instead.
+ */
+async function signInWithGoogle() {
+  try {
+    const { user, isNewUser } = await runGooglePopup();
+
+    if (isNewUser) {
+      await silentlySignOut();
+      showStatus(`No account found for ${user.email}. Please use Sign Up first.`, true);
+      return;
+    }
+
+    showStatus(`Signed in as ${user.email}`);
+    await completeSignIn(user);
   } catch (error) {
     console.error('Firebase sign-in failed:', error);
     showStatus('Sign-in failed. Please try again.', true);
@@ -79,21 +161,20 @@ async function signInWithGoogle() {
 
 /**
  * Signs the user out of Firebase Auth and clears local UI state.
- * Does not revoke the underlying Chrome/Google token (that's managed by Chrome).
  */
 function signOutUser() {
   auth.signOut().then(() => {
     currentUserId = null;
     currentUser = null;
     try { localStorage.removeItem('nutriscoreUser'); } catch (e) {}
-    applyStoredPreferences({ conditions: [], additionalInfo: '' });
+    applyStoredPreferences({ conditions: [], dietaryPreferences: [] });
     updateAccountUI(false);
     showStatus('Signed out.');
   });
 }
 
 /**
- * Reads which condition checkboxes are currently checked on the page.
+ * Reads which checkboxes are currently checked for a given field name.
  * Returns an array of string values, e.g. ['diabetes', 'vegan'].
  */
 function readCheckboxSelections(fieldName) {
@@ -210,16 +291,18 @@ function showStatus(message, isError = false) {
 }
 
 /**
- * Shows the "Sign in" button when signed out, or the "Sign out" button
- * (plus save controls) when signed in, so the form reflects auth state.
+ * Shows the right combination of Sign Up / Sign In / Sign Out controls
+ * (plus save button state) depending on whether someone is signed in.
  */
 function updateAccountUI(isSignedIn) {
   const signInButton = document.getElementById('signInWithGoogle');
+  const signUpButton = document.getElementById('signUpWithGoogle');
   const signOutButton = document.getElementById('signOutButton');
   const saveButton = document.getElementById('saveHealthDetails');
   const navSignButton = document.getElementById('navSignButton');
 
   if (signInButton) signInButton.style.display = isSignedIn ? 'none' : 'inline-block';
+  if (signUpButton) signUpButton.style.display = isSignedIn ? 'none' : 'inline-block';
   if (signOutButton) signOutButton.style.display = isSignedIn ? 'inline-block' : 'none';
   if (saveButton) saveButton.disabled = !isSignedIn;
 
@@ -238,13 +321,15 @@ function updateAccountUI(isSignedIn) {
 }
 
 /**
- * Wires up button clicks and restores auth/session state on page load.
- * onAuthStateChanged fires automatically if Firebase already has a
- * cached session, so returning users don't need to sign in again.
+ * Wires up button clicks. Note: session restoration on reload was
+ * intentionally removed along with persistent auth — see setPersistence
+ * above. Each page load starts signed out; onAuthStateChanged is still used
+ * to keep the UI in sync in case Firebase reports a state change mid-session.
  */
 function init() {
   const saveButton = document.getElementById('saveHealthDetails');
   const signInButton = document.getElementById('signInWithGoogle');
+  const signUpButton = document.getElementById('signUpWithGoogle');
   const signOutButton = document.getElementById('signOutButton');
 
   if (saveButton) {
@@ -252,6 +337,9 @@ function init() {
   }
   if (signInButton) {
     signInButton.addEventListener('click', signInWithGoogle);
+  }
+  if (signUpButton) {
+    signUpButton.addEventListener('click', signUpWithGoogle);
   }
   if (signOutButton) {
     signOutButton.addEventListener('click', signOutUser);
@@ -268,29 +356,14 @@ function init() {
     });
   }
 
-  // Restore session on load if the user was already signed in previously
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      currentUserId = user.uid;
-      try {
-        const snapshot = {
-          uid: user.uid,
-          displayName: user.displayName || '',
-          email: user.email || '',
-          photoURL: user.photoURL || ''
-        };
-        localStorage.setItem('nutriscoreUser', JSON.stringify(snapshot));
-      } catch (e) {}
-      showStatus(`Signed in as ${user.email}`);
-      updateAccountUI(true);
-      await loadHealthPreferencesFromFirestore(currentUserId);
-    } else {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
       currentUser = null;
       currentUserId = null;
-      try { localStorage.removeItem('nutriscoreUser'); } catch (e) {}
       updateAccountUI(false);
     }
+    // Signed-in state is handled explicitly by completeSignIn() right after
+    // a successful Sign Up/Sign In, so there's nothing extra to do here.
   });
 }
 
