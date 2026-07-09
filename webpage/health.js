@@ -321,10 +321,11 @@ function updateAccountUI(isSignedIn) {
 }
 
 /**
- * Wires up button clicks. Note: session restoration on reload was
- * intentionally removed along with persistent auth — see setPersistence
- * above. Each page load starts signed out; onAuthStateChanged is still used
- * to keep the UI in sync in case Firebase reports a state change mid-session.
+ * Wires up button clicks and restores an active session on page load/
+ * navigation (see onAuthStateChanged below). Persistence is session-only
+ * (browserSessionPersistence), so the session survives moving between pages
+ * in the same tab, but is cleared when the tab/browser is closed — the
+ * account picker itself is only forced on an explicit Sign Up/Sign In click.
  */
 function init() {
   const saveButton = document.getElementById('saveHealthDetails');
@@ -356,14 +357,21 @@ function init() {
     });
   }
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // A session already exists (e.g. the user navigated to a different
+      // page and came back within the same tab/browser session) — restore
+      // it silently, without forcing the account picker again. The picker
+      // is only forced inside runGooglePopup(), which this path never calls.
+      if (currentUserId !== user.uid) {
+        showStatus(`Signed in as ${user.email}`);
+        await completeSignIn(user);
+      }
+    } else {
       currentUser = null;
       currentUserId = null;
       updateAccountUI(false);
     }
-    // Signed-in state is handled explicitly by completeSignIn() right after
-    // a successful Sign Up/Sign In, so there's nothing extra to do here.
   });
 }
 
