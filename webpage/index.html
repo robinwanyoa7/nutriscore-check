@@ -16,31 +16,59 @@
         <span class="logo-text">NutriScore <span class="logo-badge">Extension</span></span>
       </a>
       <div class="nav-links">
-        <a href="health.html">Health</a>
-        <a href="#features">Features</a>
-        <a href="#install">Install</a>
-        <a href="#stores">Stores</a>
-        <a href="#faq">FAQ</a>
         <button type="button" id="navSignButton" class="nav-action" onclick="location.href='health.html'">Sign in</button>
       </div>
     </div>
   </nav>
 
   <header class="site-header">
-    <h1>NutriScore</h1>
-    <p class="tag">Quick nutritional hints on shopping pages</p>
+    <h1 class="header-label">NutriScore</h1>
+    <p class="header-subtitle">More Than a Score. Smart nutrition hints while you shop</p>
+    <p class="header-subtitle">Grade products instantly and get personalized guidance to make healthier choices</p>
   </header>
 
-  <main class="container">
+  <div class="page-wrapper">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <h4>Main</h4>
+          <ul>
+            <li><a href="#highlights">Highlights</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#install">Install</a></li>
+            <li><a href="#stores">Stores</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="health.html">Health</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
 
-    <section id="about">
-      <h2>About NutriScore</h2>
-      <p>NutriScore is a lightweight browser extension that surfaces quick, readable nutrition hints while you shop online. It overlays a simple grade badge on products and provides estimated nutrient details to help you make healthier choices faster.</p>
-      <p>Provide a brief health profile to get personalized suggestions and tailored guidance directly in your shopping flow.</p>
-      <a class="cta-button" href="health.html">Set up my health profile</a>
-    </section>
+    <main class="main-content">
 
-    <section id="features">
+      <section class="spotlight" id="highlights">
+        <h2 class="section-label">Highlights</h2>
+        <div class="spotlight-grid">
+          <div class="spotlight-card" style="background: linear-gradient(135deg, #FF6B6B, #FF8E8E);">
+            <div class="card-header">
+              <h3>Quick Scoring</h3>
+              <span class="card-tag">Core Feature</span>
+            </div>
+            <p>Overlay A–E grade badges on products as you shop. No extra clicks needed.</p>
+            <div class="card-footer">Instant Grades</div>
+          </div>
+          <div class="spotlight-card" style="background: linear-gradient(135deg, #4ECDC4, #6FE0D9);">
+            <div class="card-header">
+              <h3>Full Nutrient Data</h3>
+              <span class="card-tag">Premium Data</span>
+            </div>
+            <p>View detailed breakdowns of calories, fat, sugar, salt, fiber, and protein.</p>
+            <div class="card-footer">Detailed Analytics</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
       <h2>Key features</h2>
       <p>Everything you need to make smarter food choices while you shop — without leaving the page.</p>
       <div class="features-grid">
@@ -195,38 +223,19 @@
     </section>
 
   </main>
+  </div>
 
   <footer class="site-footer">
     <small>NutriScore — personalized nutrition hints while you shop.</small>
   </footer>
 
+
   <script>
     const nav = document.querySelector('.site-nav');
-    let lastScrollY = window.scrollY;
-    let isTicking = false;
-
-    function updateNavVisibility() {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 120) {
-        nav.classList.add('hidden');
-      } else {
-        nav.classList.remove('hidden');
-      }
-      lastScrollY = currentScrollY;
-      isTicking = false;
-    }
-
-    window.addEventListener('scroll', () => {
-      if (!isTicking) {
-        window.requestAnimationFrame(updateNavVisibility);
-        isTicking = true;
-      }
-    });
 
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
-        nav.classList.remove('hidden');
         document.querySelector(a.getAttribute('href'))
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
