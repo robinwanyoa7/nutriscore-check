@@ -390,6 +390,33 @@ main {
   margin-top: 0;
 }
 
+.welcome-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  border: 1px solid rgba(22, 163, 74, 0.16);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(255, 255, 255, 0.95));
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.08);
+}
+
+.welcome-card[hidden] {
+  display: none;
+}
+
+.welcome-card h2 {
+  margin: 0;
+  font-size: 1.04rem;
+  color: var(--text);
+}
+
+.welcome-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .health-panel {
   display: grid;
   gap: 16px;

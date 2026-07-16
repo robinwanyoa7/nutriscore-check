@@ -56,6 +56,10 @@ let currentUserId = null;
 // Also keep the current Firebase `User` object when signed in
 let currentUser = null;
 
+// The original signed-out prompt, kept so we can restore it verbatim on
+// sign-out rather than hardcoding the text a second time.
+let defaultHeaderSubtitle = null;
+
 /**
  * Shared popup logic for both Sign Up and Sign In. Always shows Google's
  * account chooser, then reports back whether the chosen email was already
@@ -291,6 +295,30 @@ function showStatus(message, isError = false) {
 }
 
 /**
+ * Updates the header subtitle in place — rather than a separate welcome
+ * card below the account buttons, the same line that says "Sign up or
+ * sign in..." switches to a personal welcome message once signed in.
+ */
+function updateHeaderSubtitle() {
+  const subtitleEl = document.getElementById('headerSubtitle');
+  if (!subtitleEl) return;
+
+  // Remember the original signed-out copy the first time this runs, so
+  // signing out can restore it exactly rather than duplicating the string.
+  if (defaultHeaderSubtitle === null) {
+    defaultHeaderSubtitle = subtitleEl.textContent;
+  }
+
+  if (currentUser && currentUserId) {
+    const friendlyName = (currentUser.displayName || currentUser.email || 'there').trim();
+    const displayName = friendlyName.includes('@') ? friendlyName.split('@')[0] : friendlyName;
+    subtitleEl.textContent = `Welcome${displayName ? `, ${displayName}` : ''}! Save your details below so the extension can use them while you shop.`;
+  } else {
+    subtitleEl.textContent = defaultHeaderSubtitle;
+  }
+}
+
+/**
  * Shows the right combination of Sign Up / Sign In / Sign Out controls
  * (plus save button state) depending on whether someone is signed in.
  */
@@ -318,6 +346,8 @@ function updateAccountUI(isSignedIn) {
       navSignButton.textContent = isSignedIn ? 'Sign out' : 'Sign in';
     }
   }
+
+  updateHeaderSubtitle();
 }
 
 /**
