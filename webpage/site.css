@@ -19,24 +19,8 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at 14% 16%, rgba(22, 163, 74, 0.16), transparent 18%),
-              radial-gradient(circle at 80% 10%, rgba(20, 184, 166, 0.12), transparent 20%),
-              linear-gradient(180deg, #f7fbfc 0%, #ebf4ff 55%, #f9fafb 100%);
+  background: linear-gradient(180deg, #eef8f1 0%, #e4f5e9 55%, #eef8f1 100%);
   color: var(--text);
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 18%, rgba(22, 163, 74, 0.08), transparent 14%),
-    radial-gradient(circle at 85% 12%, rgba(74, 222, 128, 0.08), transparent 14%),
-    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 38px 38px, 38px 38px, 19px 19px, 19px 19px;
-  background-position: 0 0, 0 0, 0 0, 0 0;
-  pointer-events: none;
 }
 
 main {
@@ -149,32 +133,45 @@ main {
   color: var(--text);
 }
 
+/* Header eyebrow: a small uppercase label ABOVE the real headline.
+   Kept on its own <p>, separate from the <h1>, so it can never be
+   overridden by .site-header h1's specificity (a class-only selector
+   like .header-label always loses to .site-header h1 on the same
+   element — that was silently breaking the eyebrow style before). */
+.header-label {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
 .site-header {
   max-width: 100%;
   margin: 0;
   padding: 60px 18px;
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.08), rgba(20, 184, 166, 0.08));
+  /* Light green fade (same tone as the page background) layered over the
+     photo — the gradient is opaque enough near the left/text side to
+     guarantee contrast, and lets more of the photo show through on the
+     right where there's no text sitting on top of it. */
+  background-image:
+    linear-gradient(100deg, rgba(238, 248, 241, 0.97) 0%, rgba(228, 245, 233, 0.86) 42%, rgba(228, 245, 233, 0.55) 100%),
+    url('assets/header-groceries.jpg');
+  background-size: cover;
+  background-position: center;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   display: grid;
   gap: 12px;
 }
 
-.header-label {
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .site-header h1 {
   margin: 0;
-  font-size: clamp(3.2rem, 6vw, 5.2rem);
-  line-height: 1.05;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 1.08;
   font-weight: 900;
   letter-spacing: -0.02em;
-  max-width: 720px;
+  max-width: 760px;
 }
 
 .header-subtitle {
@@ -198,9 +195,12 @@ main {
   border-right: 1px solid rgba(15, 23, 42, 0.08);
   background: rgba(255, 255, 255, 0.4);
   position: sticky;
-  top: 50px;
+  /* Matches the ~64px rendered height of .site-nav (14px top/bottom
+     padding + 38px logo mark), so the sidebar stops flush below the nav
+     bar instead of tucking a sliver of itself underneath it. */
+  top: 64px;
   height: auto;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 64px);
   overflow-y: auto;
 }
 
@@ -313,6 +313,7 @@ main {
   font-size: 0.95rem;
   line-height: 1.6;
   flex-grow: 1;
+  color: white;
 }
 
 .card-footer {
@@ -538,13 +539,6 @@ main {
   margin-top: 12px;
   color: var(--muted);
   font-size: 1rem;
-}
-
-.container {
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  display: none;
 }
 
 .site-footer small {
@@ -828,6 +822,33 @@ section li {
   color: var(--accent);
 }
 
+/* FAQ section — was entirely missing from this file even though
+   index.html's FAQ items use .faq-item, so they were rendering as bare
+   unstyled text. Matches the card language used elsewhere on the page. */
+.faq-item {
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--surface-soft);
+  margin-bottom: 14px;
+}
+
+.faq-item:last-child {
+  margin-bottom: 0;
+}
+
+.faq-item h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.faq-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .appreciate-box {
   display: grid;
   gap: 18px;
@@ -887,8 +908,34 @@ code {
     grid-template-columns: 1fr;
   }
 
+  /* Previously `display: none` here removed ALL section navigation on
+     tablet/mobile, since the top nav no longer carries those links
+     either (they moved into the sidebar). Converted to a horizontal,
+     non-sticky scrolling strip instead, so navigation still exists. */
   .sidebar {
+    position: static;
+    height: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    padding: 14px 18px;
+  }
+
+  .nav-section h4 {
     display: none;
+  }
+
+  .nav-section ul {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .nav-section a {
+    white-space: nowrap;
+    padding: 8px 12px;
+    background: var(--surface-soft);
   }
 
   .spotlight-grid {
@@ -908,7 +955,7 @@ code {
   }
 
   .site-header h1 {
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
   }
 
   .appreciate-box {
