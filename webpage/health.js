@@ -218,8 +218,6 @@ function applyStoredPreferences(preferences) {
   setInputValue('weight', preferences.weight);
   setInputValue('height', preferences.height);
   setInputValue('allergies', preferences.allergies);
-  setInputValue('healthGoals', preferences.healthGoals);
-  setInputValue('otherNotes', preferences.otherNotes);
 
   const conditionCheckboxes = Array.from(document.querySelectorAll('input[name="condition"]'));
   conditionCheckboxes.forEach((checkbox) => {
@@ -253,8 +251,6 @@ async function saveHealthPreferencesToFirestore() {
     allergies: getInputValue('allergies'),
     conditions: readCheckboxSelections('condition'),
     dietaryPreferences: readCheckboxSelections('diet'),
-    healthGoals: getInputValue('healthGoals'),
-    otherNotes: getInputValue('otherNotes'),
     updatedAt: new Date().toISOString()
   };
 

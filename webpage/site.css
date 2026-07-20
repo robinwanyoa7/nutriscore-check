@@ -151,15 +151,24 @@ main {
   max-width: 100%;
   margin: 0;
   padding: 60px 18px;
+  /* min-height ensures the banner has a consistent, deliberate shape
+     regardless of how much text sits on top of it — without this, a
+     short subtitle would make the header (and therefore the visible
+     slice of the photo) shrink unpredictably between pages. */
+  min-height: 380px;
+  box-sizing: border-box;
   /* Light green fade (same tone as the page background) layered over the
-     photo — the gradient is opaque enough near the left/text side to
-     guarantee contrast, and lets more of the photo show through on the
-     right where there's no text sitting on top of it. */
+     photo — opaque enough near the left/text side to guarantee contrast,
+     fading out toward the right where the grocery basket sits. */
   background-image:
-    linear-gradient(100deg, rgba(238, 248, 241, 0.97) 0%, rgba(228, 245, 233, 0.86) 42%, rgba(228, 245, 233, 0.55) 100%),
+    linear-gradient(100deg, rgba(238, 248, 241, 0.97) 0%, rgba(232, 247, 237, 0.88) 46%, rgba(232, 247, 237, 0.5) 100%),
     url('assets/header-groceries.jpg');
   background-size: cover;
-  background-position: center;
+  /* Image is a wide 2.5:1 banner with the basket sitting right-of-center
+     and low in the frame — biasing the crop right and slightly down
+     keeps the basket in view instead of centering on empty blurred
+     background, which is what a plain "center" position would do here. */
+  background-position: 72% 62%;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   display: grid;
   gap: 12px;
@@ -313,7 +322,6 @@ main {
   font-size: 0.95rem;
   line-height: 1.6;
   flex-grow: 1;
-  color: white;
 }
 
 .card-footer {
@@ -390,33 +398,6 @@ main {
   margin-top: 0;
 }
 
-.welcome-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px 18px;
-  margin-top: 16px;
-  border: 1px solid rgba(22, 163, 74, 0.16);
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(255, 255, 255, 0.95));
-  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.08);
-}
-
-.welcome-card[hidden] {
-  display: none;
-}
-
-.welcome-card h2 {
-  margin: 0;
-  font-size: 1.04rem;
-  color: var(--text);
-}
-
-.welcome-card p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
 .health-panel {
   display: grid;
   gap: 16px;
@@ -434,35 +415,83 @@ main {
   color: var(--text);
 }
 
-.health-conditions {
-  border: 1px solid var(--border, #ccc);
-  border-radius: 8px;
-  padding: 16px;
-  margin: 0 0 16px 0;
+/* All fieldsets on this page get the same clean reset — previously only
+   .health-conditions had this, so .health-profile, .health-allergies,
+   .health-goals, and .dietary-preferences were silently showing the
+   browser's default gray fieldset border/padding instead. */
+.health-panel fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 20px 0;
 }
 
-.health-conditions legend {
+/* Chip-style toggle for Health conditions / Dietary preferences, replacing
+   the plain checkbox list. Each chip is a real checkbox + label underneath
+   (so health.js's existing input[name="condition"/"diet"] queries keep
+   working unchanged) — only the visual presentation changes. */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-group .chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(15, 23, 42, 0.12);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.chip-group .chip:hover {
+  border-color: var(--accent);
+}
+
+/* The actual checkbox stays in the DOM (keeps it a real, accessible form
+   control) but is visually hidden — the label itself is the clickable
+   pill, styled based on the checkbox's checked state via :has(). */
+.chip-group .chip input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chip-group .chip .chip-check {
+  display: none;
+}
+
+.chip-group .chip:has(input:checked) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.chip-group .chip:has(input:checked) .chip-check {
+  display: inline;
+}
+
+.chip-group .chip:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.health-panel legend {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
-  padding: 0 4px;
-  margin-bottom: 8px;
-}
-
-.health-conditions label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.health-conditions input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
-  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;
 }
 
 .health-panel label {
@@ -471,21 +500,6 @@ main {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
-}
-
-.health-conditions label,
-.dietary-preferences label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.health-conditions input[type="checkbox"],
-.dietary-preferences input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
-  cursor: pointer;
 }
 
 .health-panel input[type="number"],
@@ -979,6 +993,8 @@ code {
 
   .site-header {
     padding: 40px 18px 30px;
+    min-height: 280px;
+    background-position: 65% 55%;
   }
 
   .site-header h1 {
